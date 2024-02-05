@@ -1,7 +1,7 @@
 {
-  "name": "indesign-translate",
+  "name": "indesign-translate-icml",
   "version": "1.1.0",
-  "description": "",
+  "description": "Translate indesign documents using InCopy's ICML as an intermediary",
   "main": "index.js",
   "scripts": {
     "extract": "ts-node extract_source_json.ts",
