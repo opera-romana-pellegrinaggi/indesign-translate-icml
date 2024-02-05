@@ -37,5 +37,6 @@
       "email": "priest@johnromanodorazio.com"
     }
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "packageManager": "yarn@4.1.0"
 }
