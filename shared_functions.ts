@@ -22,7 +22,7 @@ export interface TranslationEntry {
 }
 
 
-export function storyXMLNullCheck(storyXmlParsed: { [Document: string]: { Story: { ParagraphStyleRange: string | any[]; }[]; }[]; }): boolean {
+export function storyXMLNullCheck(storyXmlParsed: { Document: { Story: { ParagraphStyleRange: string | any[] }[] }[] }): boolean {
     if (storyXmlParsed
         && storyXmlParsed.Document[0]
         && storyXmlParsed.Document[0].Story[0]
@@ -93,8 +93,6 @@ export function extractStoryMap(storyFileContents: string): {[key: string]: stri
 }
 
 export function textToPSRSummary(text: string): PSRSummary {
-    //let str = removeForbiddenCharacters(text + "");
-    //let str = removeSomeForbiddenCharacters(text + "");
     return {
         content: text,
         type: "text"
@@ -115,35 +113,35 @@ export function extractStoryPSRList(storyFileContents: string): PSRSummary[] {
     const storyXmlParsed = parser.parse(storyFileContents);
     //console.log(storyXmlParsed);
     console.log(`Document.length=${storyXmlParsed.Document.length}, Document[0].Story.length=${storyXmlParsed.Document[0].Story.length}, Document[0].Story[0].ParagraphStyleRange.length=${storyXmlParsed.Document[0].Story[0].ParagraphStyleRange.length}`);
-    console.log('Document[0].Story[0].ParagraphStyleRange[0] =');
-    console.log(storyXmlParsed.Document[0].Story[0].ParagraphStyleRange[0]);
     let psrSummaryList: PSRSummary[] = [];
-    //let lastPsr: any;
-    /*
+    let lastPsr: any;
+
     if (storyXMLNullCheck(storyXmlParsed)) {
         try {
-            storyXmlParsed["Document"][0].Story[0].ParagraphStyleRange.forEach((psr: { CharacterStyleRange: any[]; }) => {
+            storyXmlParsed.Document[0].Story[0].ParagraphStyleRange.forEach((psr: { CharacterStyleRange: any[]; }, idx: number) => {
+                console.log(`Document[0].Story[0].ParagraphStyleRange[${idx}]=`);
+                //console.log(psr);
                 lastPsr = psr;
                 if (psr.CharacterStyleRange && psr.CharacterStyleRange.length > 0) {
                     psr.CharacterStyleRange.forEach((csr) => {
-                        if (csr.HyperlinkTextSource
-                            && csr.HyperlinkTextSource[0]
-                            && csr.HyperlinkTextSource[0].Content
-                            && typeof csr.HyperlinkTextSource[0].Content === "string"
+                        //console.log(csr);
+                        if (csr.HyperlinkTextDestination
+                            && csr.Content
+                            && typeof csr.Content === "string"
                         ) {
-                            let str = csr.HyperlinkTextSource[0].Content;
+                            let str = csr.Content;
                             let psrSummary: PSRSummary = {
                                 content: str,
                                 type: "hyperlink",
-                                name: csr.HyperlinkTextSource[0]["@_Name"],
-                                self: csr.HyperlinkTextSource[0]["@_Self"],
+                                name: csr.HyperlinkTextDestination["@_Name"],
+                                self: csr.HyperlinkTextDestination["@_Self"],
                             };
                             psrSummaryList.push(psrSummary);
-                        }
-                        if (csr.Content) {
+                        } else if (csr.Content) {
                             if (typeof csr.Content === "string" || typeof csr.Content === "number") {
                                 psrSummaryList.push(textToPSRSummary(csr.Content + ''));
                             } else if (Array.isArray(csr.Content)) {
+                                console.log('we have a case in which csr.Content is an Array :O');
                                 for (let str of csr.Content) {
                                     psrSummaryList.push(textToPSRSummary(str));
                                 }
@@ -158,7 +156,7 @@ export function extractStoryPSRList(storyFileContents: string): PSRSummary[] {
             console.debug(ex);
         }
     }
-    */
+
     return psrSummaryList;
 }
 
@@ -265,37 +263,36 @@ export function getICMLFilePathForName(inputFolder: string, icmlName: string): s
 }
 
 export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string): object => {
-    let sourceTranslation: {[key: string]: {[key: string]: {[key: string]: string} } } = {};
+    let sourceTranslation: object = {};
+    let currentStoryId: string;
     icmlFiles.forEach( (icmlFile) => {
         const icmlIdSeparator = icmlFile.lastIndexOf('-');
         const icmlId = icmlFile.slice(icmlIdSeparator + 1);
         const icmlFilePath: string = path.join(sourceFolder, icmlFile);
         const icmlFileContents: string = fs.readFileSync(icmlFilePath).toString();
         const psrList: PSRSummary[]     = extractStoryPSRList(icmlFileContents);
-        //const hasLinks: boolean         = psrList.filter((psr) => psr.type === "hyperlink").length > 0;
-        sourceTranslation[icmlId]   = {};
-        /*
+        const hasLinks: boolean         = psrList.filter((psr) => psr.type === "hyperlink").length > 0;
+        //sourceTranslation[icmlId]   = psrList;
+
         if (hasLinks) {
             let html: string = psrListToHTML(psrList);
             if( icmlId !== currentStoryId ) {
                 currentStoryId = icmlId;
-                translationObj[pageFileNameShort][currentStoryId] = {};
-                translationObj[pageFileNameShort][currentStoryId][removeForbiddenCharacters(html)] = removeSomeForbiddenCharacters(html);
+                sourceTranslation[currentStoryId] = {};
+                sourceTranslation[currentStoryId][html] = html;
             } else {
-                translationObj[pageFileNameShort][currentStoryId][removeForbiddenCharacters(html)] = removeSomeForbiddenCharacters(html);
+                sourceTranslation[currentStoryId][html] = html;
             }
         } else {
+            if( icmlId !== currentStoryId ) {
+                currentStoryId = icmlId;
+                sourceTranslation[currentStoryId] = {};
+            }
             psrList.forEach((psr) => {
-                if( icmlId !== currentStoryId ) {
-                    currentStoryId = icmlId;
-                    translationObj[pageFileNameShort][currentStoryId] = {};
-                    translationObj[pageFileNameShort][currentStoryId][removeForbiddenCharacters(psr.content)] = removeSomeForbiddenCharacters(psr.content);
-                } else {
-                    translationObj[pageFileNameShort][currentStoryId][removeForbiddenCharacters(psr.content)] = removeSomeForbiddenCharacters(psr.content);
-                }
+                sourceTranslation[currentStoryId][psr.content] = psr.content;
             });
         }
-        */
+
     });
     return sourceTranslation;
 }

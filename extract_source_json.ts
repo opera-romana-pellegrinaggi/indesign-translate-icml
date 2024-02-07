@@ -5,10 +5,9 @@ import { retrieveICMLFiles, extractStringsFromICML, isValidIso, validIsoCodes } 
 const argv = require('minimist')(process.argv.slice(2));
 Object.freeze(argv);
 
-let icmlFolder: string = argv['source-folder'] ?? argv['f'] ?? process.env.ICML_FOLDER_LOCATION ?? "./InCopy";
+let icmlFolder: string = argv['source-folder'] ?? argv['f'] ?? process.env.ICML_FOLDER_LOCATION ?? "../InCopy";
 let sourceLang: string = argv['source-lang'] ?? argv['l'] ?? process.env.SOURCE_LANG ?? 'en';
-
-let translationsFolder: string = "./i18n";
+let translationsFolder: string = argv['translations-folder'] ?? argv['t'] ?? process.env.TRANSLATIONS_FOLDER ?? "../i18n";
 
 let languageNames = new Intl.DisplayNames(["en"], { type: "language" });
 
@@ -36,6 +35,12 @@ let languageNames = new Intl.DisplayNames(["en"], { type: "language" });
     } else {
         icmlFiles = icmlFiles as string[];
         let sourceStrings = extractStringsFromICML(icmlFiles, sourceFolder);
+        //console.log(sourceStrings);
+        if( !fs.existsSync(translationsFolder) ) {
+            fs.mkdirSync(translationsFolder);
+        }
+        let sourceTranslationFile: string = path.join(translationsFolder, sourceLang + '.json');
+        fs.writeFileSync( sourceTranslationFile, JSON.stringify(sourceStrings) );
     }
 })();
 
