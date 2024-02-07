@@ -40,7 +40,7 @@ let languageNames = new Intl.DisplayNames(["en"], { type: "language" });
             fs.mkdirSync(translationsFolder);
         }
         let sourceTranslationFile: string = path.join(translationsFolder, sourceLang + '.json');
-        fs.writeFileSync( sourceTranslationFile, JSON.stringify(sourceStrings) );
+        fs.writeFileSync( sourceTranslationFile, JSON.stringify(sourceStrings, undefined, "\t"), "utf8" );
     }
 })();
 

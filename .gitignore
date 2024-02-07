@@ -132,6 +132,7 @@ dist
 # yarn v4
 .yarn/releases
 .yarnrc.yml
+.env.yarn
 
 # indesign-translate-icml
 input/*

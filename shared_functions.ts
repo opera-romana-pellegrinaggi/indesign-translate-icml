@@ -49,12 +49,12 @@ export function extractStoryMap(storyFileContents: string): {[key: string]: stri
         }
     });
     const storyXmlParsed = parser.parse(storyFileContents);
-    //if( storyXmlParsed["Document"][0].Story[0] )
+    //if( storyXmlParsed.Document[0].Story[0] )
     let storyTranslateMap: {[key: string]: string} = {};
     let lastPsr: { CharacterStyleRange: { HyperlinkTextSource: { Content: string; }[]; Content: string | string[]; }[]; }|null = null;
     if (storyXMLNullCheck(storyXmlParsed)) {
         try {
-            storyXmlParsed["Document"][0].Story[0].ParagraphStyleRange.forEach((psr: { CharacterStyleRange: { HyperlinkTextSource: { Content: string; }[]; Content: string | string[]; }[]; }) => {
+            storyXmlParsed.Document[0].Story[0].ParagraphStyleRange.forEach((psr: { CharacterStyleRange: { HyperlinkTextSource: { Content: string; }[]; Content: string | string[]; }[]; }) => {
                 lastPsr = psr;
                 if (psr.CharacterStyleRange && psr.CharacterStyleRange.length > 0) {
                     //console.log( psr.CharacterStyleRange );
@@ -263,11 +263,11 @@ export function getICMLFilePathForName(inputFolder: string, icmlName: string): s
 }
 
 export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string): object => {
-    let sourceTranslation: object = {};
+    let sourceTranslation: {[key: string]: { [key: string]: string } } = {};
     let currentStoryId: string;
     icmlFiles.forEach( (icmlFile) => {
         const icmlIdSeparator = icmlFile.lastIndexOf('-');
-        const icmlId = icmlFile.slice(icmlIdSeparator + 1);
+        const icmlId = icmlFile.slice(icmlIdSeparator + 1).split('.')[0];
         const icmlFilePath: string = path.join(sourceFolder, icmlFile);
         const icmlFileContents: string = fs.readFileSync(icmlFilePath).toString();
         const psrList: PSRSummary[]     = extractStoryPSRList(icmlFileContents);
@@ -278,18 +278,18 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
             let html: string = psrListToHTML(psrList);
             if( icmlId !== currentStoryId ) {
                 currentStoryId = icmlId;
-                sourceTranslation[currentStoryId] = {};
-                sourceTranslation[currentStoryId][html] = html;
+                sourceTranslation['Story_' + currentStoryId] = {};
+                sourceTranslation['Story_' + currentStoryId][html] = html;
             } else {
-                sourceTranslation[currentStoryId][html] = html;
+                sourceTranslation['Story_' + currentStoryId][html] = html;
             }
         } else {
             if( icmlId !== currentStoryId ) {
                 currentStoryId = icmlId;
-                sourceTranslation[currentStoryId] = {};
+                sourceTranslation['Story_' + currentStoryId] = {};
             }
             psrList.forEach((psr) => {
-                sourceTranslation[currentStoryId][psr.content] = psr.content;
+                sourceTranslation['Story_' + currentStoryId][psr.content] = psr.content;
             });
         }
 
