@@ -102,20 +102,20 @@ export function textToPSRSummary(text: string): PSRSummary {
 }
 
 export function extractStoryPSRList(storyFileContents: string): PSRSummary[] {
-    const alwaysArray = [
+    const arrayElements = [
         'Document',
         'Document.Story',
         'Document.Story.ParagraphStyleRange',
-        'Document.Story.ParagraphStyleRange.CharacterStyleRange',
+        'Document.Story.ParagraphStyleRange.CharacterStyleRange'
     ];
     const parser: XMLParser = new XMLParser({
         ignoreAttributes: false,
-        isArray: (name, jpath, isLeafNode, isAttribute) => { 
-            return (alwaysArray.includes(jpath));
-        }
+        isArray: (name, jpath, isLeafNode, isAttribute) => arrayElements.includes(jpath)
     });
     const storyXmlParsed = parser.parse(storyFileContents);
     console.log(storyXmlParsed);
+    console.log('Document[0].Story =');
+    console.log(storyXmlParsed.Document[0].Story);
     let psrSummaryList: PSRSummary[] = [];
     //let lastPsr: any;
     /*
