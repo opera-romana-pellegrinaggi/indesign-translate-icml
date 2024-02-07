@@ -114,8 +114,8 @@ export function extractStoryPSRList(storyFileContents: string): PSRSummary[] {
     });
     const storyXmlParsed = parser.parse(storyFileContents);
     console.log(storyXmlParsed);
-    console.log('Document[0].Story =');
-    console.log(storyXmlParsed.Document[0].Story);
+    console.log(`Document.length=${Document.length}, Document[0].Story.length=${Document[0].Story.length}, Document[0].Story[0] =`);
+    console.log(storyXmlParsed.Document[0].Story[0]);
     let psrSummaryList: PSRSummary[] = [];
     //let lastPsr: any;
     /*
