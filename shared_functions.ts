@@ -176,6 +176,7 @@ export function extractStoryPSRList(storyFileContents: string): {[key: string]: 
 export function indesignSpecialCharsToASCII(str: string): string {
     if(typeof str !== 'string') {
         console.error('we have a case in which str §' + str + '§ is of type ' + typeof str);
+        console.log(str);
         return str;
     }
     return str.replace(/\u2028/g, "\r").replace(/\u2029/g, "\n").replace(/\u0009/g, "\t");
