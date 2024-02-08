@@ -286,27 +286,21 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
         const psrList: {[key: string]: PSRSummary[]}     = extractStoryPSRList(icmlFileContents);
 
         for(const [key,csrList] of Object.entries(psrList) ) {
-            sourceTranslation['Story_' + icmlId] = {};
+            if( icmlId !== currentStoryId ) {
+                currentStoryId = icmlId;
+                sourceTranslation['Story_' + icmlId] = {};
+            }
+            sourceTranslation['Story_' + icmlId][key] = {};
             const hasLinks: boolean     = csrList.filter((csr) => csr.type === "hyperlink").length > 0;
             if (hasLinks) {
                 let html: string = psrListToHTML(csrList);
-                if( icmlId !== currentStoryId ) {
-                    currentStoryId = icmlId;
-                    sourceTranslation['Story_' + currentStoryId][key]        = {};
-                    sourceTranslation['Story_' + currentStoryId][key]['CSR_html_' + csrIdx]  = html;
-                } else {
-                    sourceTranslation['Story_' + currentStoryId][key]['CSR_html_' + csrIdx]  = html;
-                }
+                sourceTranslation['Story_' + currentStoryId][key]['CSR_html_' + csrIdx]  = html;
             } else {
-                if( icmlId !== currentStoryId ) {
-                    currentStoryId = icmlId;
-                    sourceTranslation['Story_' + currentStoryId][key]        = {};
-                }
                 csrList.forEach((csr) => {
                     sourceTranslation['Story_' + currentStoryId][key]['CSR_' + csrIdx] = csr.content;
                 });
             }
-            sourceTranslation['Story_' + icmlId][key]['src']     = csrList;
+            sourceTranslation['Story_' + icmlId][key]['src'] = csrList;
         }
     });
     return sourceTranslation;
