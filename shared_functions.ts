@@ -154,9 +154,6 @@ export function extractStoryPSRList(storyFileContents: string): {[key: string]: 
                             } else {
                                 if (typeof csr.Content === "string") {
                                     psrSummaryList['PSR_' + idx].push(textToPSRSummary(indesignSpecialCharsToASCII(csr.Content),csrIdx,0));
-                                } else {
-                                    console.log('csr.Content is exceptionally of type ' + typeof csr.Content);
-                                    console.log(csr.Content);
                                 }
                             }
                         }
