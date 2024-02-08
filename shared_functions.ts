@@ -157,10 +157,10 @@ export function extractStoryPSRList(storyFileContents: string): {[key: string]: 
                                     console.log(`current indices are: PSR_${idx}, CSR_${csrIdx}, Content_${contentIdx}`);
                                     let precedingSibling = xpath.select(`//ParagraphStyleRange[${idx+1}]/CharacterStyleRange[${csrIdx+1}]/Content[${contentIdx+1}]/preceding-sibling::*[1][self::Br]`, xmlDoc);
                                     console.log('preceding sibling:');
-                                    console.log(precedingSibling);
+                                    console.log(precedingSibling.length);
                                     let followingSibling = xpath.select(`//ParagraphStyleRange[${idx+1}]/CharacterStyleRange[${csrIdx+1}]/Content[${contentIdx+1}]/following-sibling::*[1][self::Br]`, xmlDoc);
                                     console.log('following sibling:');
-                                    console.log(followingSibling);
+                                    console.log(followingSibling.length);
                                     psrSummaryList['PSR_' + idx].push(psrSum);
                                 });
                             } else {
