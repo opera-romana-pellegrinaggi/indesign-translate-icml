@@ -128,7 +128,7 @@ export function extractStoryPSRList(storyFileContents: string): {[key: string]: 
                 //console.log(psr);
                 lastPsr = psr;
                 if (psr.CharacterStyleRange && psr.CharacterStyleRange.length > 0) {
-                    psr.CharacterStyleRange.forEach((csr,csrIdx) => {
+                    psr.CharacterStyleRange.forEach((csr: any,csrIdx: number) => {
                         //console.log(csr);
                         if (csr.HyperlinkTextDestination
                             && csr.Content
@@ -148,8 +148,8 @@ export function extractStoryPSRList(storyFileContents: string): {[key: string]: 
                             if (Array.isArray(csr.Content)) {
                                 console.log('we have a case in which csr.Content is an Array :');
                                 console.log(csr.Content);
-                                csr.Content.forEach( (value: string,idx: number) => {
-                                    psrSummaryList['PSR_' + idx].push(textToPSRSummary(indesignSpecialCharsToASCII(value),csrIdx,idx));
+                                csr.Content.forEach( (value: string,contentIdx: number) => {
+                                    psrSummaryList['PSR_' + idx].push(textToPSRSummary(indesignSpecialCharsToASCII(value),csrIdx,contentIdx));
                                 });
                             } else {
                                 if (typeof csr.Content === "string") {
