@@ -7,10 +7,15 @@
         "allowImportingTsExtensions": true,
         "strictNullChecks": true,
         "strictFunctionTypes": true,
+        "esModuleInterop": true,
         "noEmit": true
     },
     "exclude": [
         "node_modules",
         "**/node_modules/*"
-    ]
+    ],
+    "ts-node": {
+        "esm": true,
+        "experimentalSpecifierResolution": "node"
+    }
 }
