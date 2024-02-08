@@ -99,7 +99,7 @@ export function textToPSRSummary(text: string): PSRSummary {
     };
 }
 
-export function extractStoryPSRList(storyFileContents: string): PSRSummary[] {
+export function extractStoryPSRList(storyFileContents: string): {[key: string]: PSRSummary[] } {
     const arrayElements = [
         'Document',
         'Document.Story',
@@ -113,12 +113,13 @@ export function extractStoryPSRList(storyFileContents: string): PSRSummary[] {
     const storyXmlParsed = parser.parse(storyFileContents);
     //console.log(storyXmlParsed);
     console.log(`Document.length=${storyXmlParsed.Document.length}, Document[0].Story.length=${storyXmlParsed.Document[0].Story.length}, Document[0].Story[0].ParagraphStyleRange.length=${storyXmlParsed.Document[0].Story[0].ParagraphStyleRange.length}`);
-    let psrSummaryList: PSRSummary[] = [];
+    let psrSummaryList: {[key: string]: PSRSummary[] }  = {};
     let lastPsr: any;
 
     if (storyXMLNullCheck(storyXmlParsed)) {
         try {
             storyXmlParsed.Document[0].Story[0].ParagraphStyleRange.forEach((psr: { CharacterStyleRange: any[]; }, idx: number) => {
+                psrSummaryList['PSR_' + idx] = [];
                 //console.log(`Document[0].Story[0].ParagraphStyleRange[${idx}]=`);
                 //console.log(psr);
                 lastPsr = psr;
@@ -136,14 +137,14 @@ export function extractStoryPSRList(storyFileContents: string): PSRSummary[] {
                                 name: csr.HyperlinkTextDestination["@_Name"],
                                 self: csr.HyperlinkTextDestination["@_Self"],
                             };
-                            psrSummaryList.push(psrSummary);
+                            psrSummaryList['PSR_' + idx].push(psrSummary);
                         } else if (csr.Content) {
                             if (typeof csr.Content === "string" || typeof csr.Content === "number") {
-                                psrSummaryList.push(textToPSRSummary(indesignSpecialCharsToASCII(csr.Content)));
+                                psrSummaryList['PSR_' + idx].push(textToPSRSummary(indesignSpecialCharsToASCII(csr.Content)));
                             } else if (Array.isArray(csr.Content)) {
                                 console.log('we have a case in which csr.Content is an Array :O');
                                 for (let str of csr.Content) {
-                                    psrSummaryList.push(textToPSRSummary(indesignSpecialCharsToASCII(str)));
+                                    psrSummaryList['PSR_' + idx].push(textToPSRSummary(indesignSpecialCharsToASCII(str)));
                                 }
                             }
                         }
@@ -275,36 +276,38 @@ export function getICMLFilePathForName(inputFolder: string, icmlName: string): s
 }
 
 export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string): object => {
-    let sourceTranslation: {[key: string]: { [key: string]: string | PSRSummary[] } } = {};
+    let sourceTranslation: {[key: string]: { [key: string]: { [key: string]: string | PSRSummary[]} } } = {};
     let currentStoryId: string;
     icmlFiles.forEach( (icmlFile, csrIdx) => {
         const icmlIdSeparator           = icmlFile.lastIndexOf('-');
         const icmlId                    = icmlFile.slice(icmlIdSeparator + 1).split('.')[0];
         const icmlFilePath: string      = path.join(sourceFolder, icmlFile);
         const icmlFileContents: string  = fs.readFileSync(icmlFilePath).toString();
-        const psrList: PSRSummary[]     = extractStoryPSRList(icmlFileContents);
-        const hasLinks: boolean         = psrList.filter((psr) => psr.type === "hyperlink").length > 0;
+        const psrList: {[key: string]: PSRSummary[]}     = extractStoryPSRList(icmlFileContents);
 
-        if (hasLinks) {
-            let html: string = psrListToHTML(psrList);
-            if( icmlId !== currentStoryId ) {
-                currentStoryId = icmlId;
-                sourceTranslation['Story_' + currentStoryId]        = {};
-                sourceTranslation['Story_' + currentStoryId]['CSR_html_' + csrIdx]  = html;
+        for(const [key,csrList] of Object.entries(psrList) ) {
+            //sourceTranslation['Story_' + icmlId][key] = {};
+            const hasLinks: boolean     = csrList.filter((csr) => csr.type === "hyperlink").length > 0;
+            if (hasLinks) {
+                let html: string = psrListToHTML(csrList);
+                if( icmlId !== currentStoryId ) {
+                    currentStoryId = icmlId;
+                    sourceTranslation['Story_' + currentStoryId][key]        = {};
+                    sourceTranslation['Story_' + currentStoryId][key]['CSR_html_' + csrIdx]  = html;
+                } else {
+                    sourceTranslation['Story_' + currentStoryId][key]['CSR_html_' + csrIdx]  = html;
+                }
             } else {
-                sourceTranslation['Story_' + currentStoryId]['CSR_html_' + csrIdx]  = html;
+                if( icmlId !== currentStoryId ) {
+                    currentStoryId = icmlId;
+                    sourceTranslation['Story_' + currentStoryId][key]        = {};
+                }
+                csrList.forEach((csr) => {
+                    sourceTranslation['Story_' + currentStoryId][key]['CSR_' + csrIdx] = csr.content;
+                });
             }
-        } else {
-            if( icmlId !== currentStoryId ) {
-                currentStoryId = icmlId;
-                sourceTranslation['Story_' + currentStoryId]        = {};
-            }
-            psrList.forEach((psr) => {
-                sourceTranslation['Story_' + currentStoryId]['CSR_' + csrIdx] = psr.content;
-            });
+            sourceTranslation['Story_' + icmlId][key]['src']     = csrList;
         }
-        sourceTranslation['Story_' + icmlId]['src']     = psrList;
-
     });
     return sourceTranslation;
 }
