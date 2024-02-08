@@ -278,7 +278,7 @@ export function getICMLFilePathForName(inputFolder: string, icmlName: string): s
 export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string): object => {
     let sourceTranslation: {[key: string]: { [key: string]: { [key: string]: string | PSRSummary[]} } } = {};
     let currentStoryId: string;
-    icmlFiles.forEach( (icmlFile, csrIdx) => {
+    icmlFiles.forEach( (icmlFile, idx) => {
         const icmlIdSeparator           = icmlFile.lastIndexOf('-');
         const icmlId                    = icmlFile.slice(icmlIdSeparator + 1).split('.')[0];
         const icmlFilePath: string      = path.join(sourceFolder, icmlFile);
@@ -294,9 +294,9 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
             const hasLinks: boolean     = csrList.filter((csr) => csr.type === "hyperlink").length > 0;
             if (hasLinks) {
                 let html: string = psrListToHTML(csrList);
-                sourceTranslation['Story_' + currentStoryId][key]['CSR_html_' + csrIdx]  = html;
+                sourceTranslation['Story_' + currentStoryId][key]['CSR_html_0']  = html;
             } else {
-                csrList.forEach((csr) => {
+                csrList.forEach((csr,csrIdx) => {
                     sourceTranslation['Story_' + currentStoryId][key]['CSR_' + csrIdx] = csr.content;
                 });
             }
