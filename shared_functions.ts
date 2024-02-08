@@ -1,5 +1,5 @@
 import { XMLParser } from "fast-xml-parser"
-import DomParser from "dom-parser"
+//import DomParser from "dom-parser"
 import { encode, decode } from "html-entities"
 import fs from "fs"
 import path from "path"
@@ -118,6 +118,7 @@ export function extractStoryPSRList(storyFileContents: string): {[key: string]: 
     });
     const storyXmlParsed = parser.parse(storyFileContents);
     const xmlDoc = new DOMParser().parseFromString(storyFileContents, 'text/xml');
+
     //console.log(storyXmlParsed);
     //console.log(`Document.length=${storyXmlParsed.Document.length}, Document[0].Story.length=${storyXmlParsed.Document[0].Story.length}, Document[0].Story[0].ParagraphStyleRange.length=${storyXmlParsed.Document[0].Story[0].ParagraphStyleRange.length}`);
     let psrSummaryList: {[key: string]: PSRSummary[] }  = {};
@@ -132,7 +133,6 @@ export function extractStoryPSRList(storyFileContents: string): {[key: string]: 
                 lastPsr = psr;
                 if (psr.CharacterStyleRange && psr.CharacterStyleRange.length > 0) {
                     psr.CharacterStyleRange.forEach((csr: any,csrIdx: number) => {
-                        //let nodes = xpath.select("//CharacterStyleRange", xmlDoc);
                         //console.log(csr);
                         if (csr.HyperlinkTextDestination
                             && csr.Content
@@ -153,7 +153,15 @@ export function extractStoryPSRList(storyFileContents: string): {[key: string]: 
                                 //console.log('we have a case in which csr.Content is an Array :');
                                 //console.log(csr.Content);
                                 csr.Content.forEach( (value: string,contentIdx: number) => {
-                                    psrSummaryList['PSR_' + idx].push(textToPSRSummary(indesignSpecialCharsToASCII(value),csrIdx,contentIdx));
+                                    let psrSum = textToPSRSummary(indesignSpecialCharsToASCII(value),csrIdx,contentIdx);
+                                    console.log(`current indices are: PSR_${idx}, CSR_${csrIdx}, Content_${contentIdx}`);
+                                    let precedingSibling = xpath.select(`//ParagraphStyleRange[${idx+1}]/CharacterStyleRange[${csrIdx+1}]/Content[${contentIdx+1}]/preceding-sibling::*[1][self::Br]`, xmlDoc);
+                                    console.log('preceding sibling:');
+                                    console.log(precedingSibling);
+                                    let followingSibling = xpath.select(`//ParagraphStyleRange[${idx+1}]/CharacterStyleRange[${csrIdx+1}]/Content[${contentIdx+1}]/following-sibling::*[1][self::Br]`, xmlDoc);
+                                    console.log('following sibling:');
+                                    console.log(followingSibling);
+                                    psrSummaryList['PSR_' + idx].push(psrSum);
                                 });
                             } else {
                                 if (typeof csr.Content === "string") {
@@ -199,16 +207,21 @@ export function hyperlinkToHTML(psrSummary: PSRSummary): string {
 
 export function htmlEntryToTextEntries(translateEntry: TranslationEntry): TranslationEntry[] {
     let textEntries: TranslationEntry[]         = [];
-    let domParser: DomParser                    = new DomParser();
-    let sourceParsed: DomParser.Dom             = domParser.parseFromString("<html><body>" + translateEntry.sourceText + "</body></html>");
-    let translationParsed: DomParser.Dom        = domParser.parseFromString("<html><body>" + translateEntry.text + "</body></html>");
-    let sourceLinkElements: DomParser.Node[] | null = sourceParsed.getElementsByTagName("a");
+    // let domParser: DomParser                    = new DomParser();
+    // let sourceParsed: DomParser.Dom             = domParser.parseFromString("<html><body>" + translateEntry.sourceText + "</body></html>");
+    // let translationParsed: DomParser.Dom        = domParser.parseFromString("<html><body>" + translateEntry.text + "</body></html>");
+    // let sourceLinkElements: DomParser.Node[] | null = sourceParsed.getElementsByTagName("a");
+    let domParser = new DOMParser();
+    let sourceParsed = domParser.parseFromString("<html><body>" + translateEntry.sourceText + "</body></html>", 'text/html');
+    let translationParsed = domParser.parseFromString("<html><body>" + translateEntry.text + "</body></html>", 'text/html');
+    let sourceLinkElements = sourceParsed.getElementsByTagName("a");
     if( sourceLinkElements !== null && sourceLinkElements.length > 0 ) {
         for (let i: number = 0; i < sourceLinkElements.length; i++) {
             let id: string|null     = sourceLinkElements[i].getAttribute("id");
             if( id !== null ) {
                 let sourceText: string  = decode(sourceLinkElements[i].textContent, { level: 'html5' });
-                let elId: DomParser.Node|null = translationParsed.getElementById(id);
+                //let elId: DomParser.Node|null = translationParsed.getElementById(id);
+                let elId = translationParsed.getElementById(id);
                 if( elId !== null ){
                     let text: string        = decode(elId.textContent, { level: 'html5' });
                     let note: string        = "";
@@ -226,13 +239,15 @@ export function htmlEntryToTextEntries(translateEntry: TranslationEntry): Transl
             }
         }
     }
-    let sourceSpanElements: DomParser.Node[]|null = sourceParsed.getElementsByTagName("span");
+    //let sourceSpanElements: DomParser.Node[]|null = sourceParsed.getElementsByTagName("span");
+    let sourceSpanElements = sourceParsed.getElementsByTagName('span');
     if( sourceSpanElements !== null && sourceSpanElements.length > 0 ) {
         for (let i: number = 0; i < sourceSpanElements.length; i++) {
             let id: string|null = sourceSpanElements[i].getAttribute("id");
             if( id !== null ) {
                 let sourceText: string  = decode(sourceSpanElements[i].textContent, { level: 'html5' });
-                let elId: DomParser.Node|null = translationParsed.getElementById(id);
+                //let elId: DomParser.Node|null = translationParsed.getElementById(id);
+                let elId = translationParsed.getElementById(id);
                 if( elId !== null ) {
                     let text: string        = decode(elId.textContent, { level: 'html5' });
                     textEntries.push({
@@ -288,7 +303,6 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
         const icmlId                    = icmlFile.slice(icmlIdSeparator + 1).split('.')[0];
         const icmlFilePath: string      = path.join(sourceFolder, icmlFile);
         const icmlFileContents: string  = preserveXMLWhitespace(fs.readFileSync(icmlFilePath).toString());
-        //the XMLParser trims whitespace from leaf nodes. Only way to preserve is wrap in CDATA tags...
         const psrList: {[key: string]: PSRSummary[]}     = extractStoryPSRList(icmlFileContents);
 
         for(const [key,csrList] of Object.entries(psrList) ) {
@@ -319,6 +333,7 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
     return sourceTranslation;
 }
 
+//the XMLParser trims whitespace from leaf nodes. Only way to preserve is wrap in CDATA tags...
 export const preserveXMLWhitespace = (fileContents: string): string => {
     fileContents = fileContents.replace(/\<Content\>(\s+?.*?)\<\/Content\>/g, "<Content><![CDATA[$1]]></Content>");
     fileContents = fileContents.replace(/\<Content\>(.*?\s+?)\<\/Content\>/g, "<Content><![CDATA[$1]]></Content>");
