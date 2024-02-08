@@ -1,5 +1,5 @@
 import * as fs from "fs"
-import path from "path"
+import * as path from "path"
 import { retrieveICMLFiles, extractStringsFromICML, isValidIso, validIsoCodes } from "./shared_functions"
 
 const argv = require('minimist')(process.argv.slice(2));
