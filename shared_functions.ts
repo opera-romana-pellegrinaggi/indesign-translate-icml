@@ -285,8 +285,8 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
         const icmlFilePath: string      = path.join(sourceFolder, icmlFile);
         let icmlFileContents: string  = fs.readFileSync(icmlFilePath).toString();
         //the XMLParser trims whitespace from leaf nodes. Only way to preserve is wrap in CDATA tags...
-        icmlFileContents = icmlFileContents.replace(/\<Content\>(\s+?.*?)\<\/Content\>/g, "<Content><![CDATA[$1]]</Content>");
-        icmlFileContents = icmlFileContents.replace(/\<Content\>(.*?\s+?)\<\/Content\>/g, "<Content><![CDATA[$1]]</Content>");
+        icmlFileContents = icmlFileContents.replace(/\<Content\>(\s+?.*?)\<\/Content\>/g, "<Content><![CDATA[$1]]></Content>");
+        icmlFileContents = icmlFileContents.replace(/\<Content\>(.*?\s+?)\<\/Content\>/g, "<Content><![CDATA[$1]]></Content>");
         const psrList: {[key: string]: PSRSummary[]}     = extractStoryPSRList(icmlFileContents);
 
         for(const [key,csrList] of Object.entries(psrList) ) {
