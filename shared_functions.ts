@@ -3,7 +3,7 @@ import { XMLParser } from "fast-xml-parser"
 import { encode, decode } from "html-entities"
 import fs from "fs"
 import path from "path"
-import xpath from "xpath"
+import xpath, { SelectReturnType } from "xpath"
 import { DOMParser } from "@xmldom/xmldom"
 
 export type PSRType = "text" | "hyperlink"
@@ -15,6 +15,8 @@ export interface PSRSummary {
     name?: string;
     csrIdx: number;
     contentIdx: number;
+    hasPrevBr?: boolean;
+    hasNextBr?: boolean;
 }
 
 export interface TranslationEntry {
@@ -101,7 +103,9 @@ export function textToPSRSummary(text: string, csrIdx: number, contentIdx: numbe
         content: text,
         type: "text",
         csrIdx: csrIdx,
-        contentIdx: contentIdx
+        contentIdx: contentIdx,
+        hasPrevBr: false,
+        hasNextBr: false
     };
 }
 
@@ -154,13 +158,19 @@ export function extractStoryPSRList(storyFileContents: string): {[key: string]: 
                                 //console.log(csr.Content);
                                 csr.Content.forEach( (value: string,contentIdx: number) => {
                                     let psrSum = textToPSRSummary(indesignSpecialCharsToASCII(value),csrIdx,contentIdx);
-                                    console.log(`current indices are: PSR_${idx}, CSR_${csrIdx}, Content_${contentIdx}`);
-                                    let precedingSibling = xpath.select(`//ParagraphStyleRange[${idx+1}]/CharacterStyleRange[${csrIdx+1}]/Content[${contentIdx+1}]/preceding-sibling::*[1][self::Br]`, xmlDoc);
-                                    console.log('preceding sibling:');
-                                    console.log(precedingSibling.length);
-                                    let followingSibling = xpath.select(`//ParagraphStyleRange[${idx+1}]/CharacterStyleRange[${csrIdx+1}]/Content[${contentIdx+1}]/following-sibling::*[1][self::Br]`, xmlDoc);
-                                    console.log('following sibling:');
-                                    console.log(followingSibling.length);
+                                    //console.log(`current indices are: PSR_${idx}, CSR_${csrIdx}, Content_${contentIdx}`);
+                                    let precedingSibling: SelectReturnType = xpath.select(`//ParagraphStyleRange[${idx+1}]/CharacterStyleRange[${csrIdx+1}]/Content[${contentIdx+1}]/preceding-sibling::*[1][self::Br]`, xmlDoc);
+                                    //console.log('preceding sibling:');
+                                    //console.log(precedingSibling.length);
+                                    if(precedingSibling && precedingSibling.length) {
+                                        psrSum.hasPrevBr = true;
+                                    }
+                                    let followingSibling: SelectReturnType = xpath.select(`//ParagraphStyleRange[${idx+1}]/CharacterStyleRange[${csrIdx+1}]/Content[${contentIdx+1}]/following-sibling::*[1][self::Br]`, xmlDoc);
+                                    //console.log('following sibling:');
+                                    //console.log(followingSibling.length);
+                                    if(followingSibling && followingSibling.length) {
+                                        psrSum.hasNextBr = true;
+                                    }
                                     psrSummaryList['PSR_' + idx].push(psrSum);
                                 });
                             } else {
@@ -312,10 +322,22 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
             }
             if(csrList.length) {
                 sourceTranslation['Story_' + icmlId][key] = {};
+                let basket: string | null = null;
                 csrList.forEach((csr) => {
                     if(/[a-zA-Z]/.test(csr.content)) {
+                        //let's check if our string meets these conditions:
+                        //  1) is not the first CSR of the paragraph
+                        //  2) starts with a punctuation character indicating it might belong with the preceding CSR
                         let csrKey = 'CSR_' + csr.csrIdx;
                         let finalContent = csr.content;
+                        if(csr.csrIdx > 0){
+                            if(/^[^\p{L}]/.test(csr.content)){
+                            //if(/^[;\,\.\-]/.test(csr.content)){
+                                console.log(`I'm not the first of my class, and I start with punctuation: Story_${currentStoryId} ${key}, ${csrKey}, Content_${csr.contentIdx} `);
+                                console.log(basket);
+                                console.log(csr.content);
+                            }
+                        }
                         if(csr.type === 'hyperlink') {
                             csrKey = 'CSR_html_' + csr.csrIdx;
                             finalContent = hyperlinkToHTML(csr);
@@ -324,9 +346,10 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                             sourceTranslation['Story_' + currentStoryId][key][csrKey] = {};
                         }
                         sourceTranslation['Story_' + currentStoryId][key][csrKey]['Content_' + csr.contentIdx] = finalContent;
+                        basket = finalContent;
                     }
                 });
-                sourceTranslation['Story_' + icmlId][key]['src'] = csrList;
+                //sourceTranslation['Story_' + icmlId][key]['src'] = csrList;
             }
         }
     });
