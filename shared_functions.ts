@@ -272,7 +272,7 @@ export function getICMLFilePathForName(inputFolder: string, icmlName: string): s
 }
 
 export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string): object => {
-    let sourceTranslation: {[key: string]: { [key: string]: { [key: string]: { [key: string]: string | PSRSummary[]} } } } = {};
+    let sourceTranslation: {[key: string]: { [key: string]: { [key: string]: { [key: string]: string | PSRSummary[]} | PSRSummary[] } } } = {};
     let currentStoryId: string;
     icmlFiles.forEach( (icmlFile) => {
         const icmlIdSeparator           = icmlFile.lastIndexOf('-');
@@ -299,8 +299,7 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                 }
                 sourceTranslation['Story_' + currentStoryId][key][csrKey]['Content_' + csr.contentIdx] = finalContent;
             });
-            sourceTranslation['Story_' + icmlId][key]['src'] = {};
-            sourceTranslation['Story_' + icmlId][key]['src']['src'] = csrList;
+            sourceTranslation['Story_' + icmlId][key]['src'] = csrList;
         }
     });
     return sourceTranslation;
