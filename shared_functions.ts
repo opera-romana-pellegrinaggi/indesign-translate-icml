@@ -146,8 +146,8 @@ export function extractStoryPSRList(storyFileContents: string): {[key: string]: 
                             psrSummaryList['PSR_' + idx].push(psrSummary);
                         } else if (csr.Content) {
                             if (Array.isArray(csr.Content)) {
-                                console.log('we have a case in which csr.Content is an Array :');
-                                console.log(csr.Content);
+                                //console.log('we have a case in which csr.Content is an Array :');
+                                //console.log(csr.Content);
                                 csr.Content.forEach( (value: string,contentIdx: number) => {
                                     psrSummaryList['PSR_' + idx].push(textToPSRSummary(indesignSpecialCharsToASCII(value),csrIdx,contentIdx));
                                 });
