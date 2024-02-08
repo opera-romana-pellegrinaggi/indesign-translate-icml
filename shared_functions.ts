@@ -11,7 +11,8 @@ export interface PSRSummary {
     type: PSRType;
     self?: string;
     name?: string;
-    idx: number;
+    csrIdx: number;
+    contentIdx: number;
 }
 
 export interface TranslationEntry {
@@ -93,11 +94,12 @@ export function extractStoryMap(storyFileContents: string): {[key: string]: stri
     return storyTranslateMap;
 }
 
-export function textToPSRSummary(text: string, idx: number): PSRSummary {
+export function textToPSRSummary(text: string, csrIdx: number, contentIdx: number): PSRSummary {
     return {
         content: text,
         type: "text",
-        idx: idx
+        csrIdx: csrIdx,
+        contentIdx: contentIdx
     };
 }
 
@@ -138,19 +140,20 @@ export function extractStoryPSRList(storyFileContents: string): {[key: string]: 
                                 type: "hyperlink",
                                 name: csr.HyperlinkTextDestination["@_Name"],
                                 self: csr.HyperlinkTextDestination["@_Self"],
-                                idx: csrIdx
+                                csrIdx: csrIdx,
+                                contentIdx: 0
                             };
                             psrSummaryList['PSR_' + idx].push(psrSummary);
                         } else if (csr.Content) {
                             if (Array.isArray(csr.Content)) {
                                 console.log('we have a case in which csr.Content is an Array :');
                                 console.log(csr.Content);
-                                for (let str of csr.Content) {
-                                    psrSummaryList['PSR_' + idx].push(textToPSRSummary(indesignSpecialCharsToASCII(str),csrIdx));
-                                }
+                                csr.Content.forEach( (value: string,idx: number) => {
+                                    psrSummaryList['PSR_' + idx].push(textToPSRSummary(indesignSpecialCharsToASCII(value),csrIdx,idx));
+                                });
                             } else {
                                 if (typeof csr.Content === "string") {
-                                    psrSummaryList['PSR_' + idx].push(textToPSRSummary(indesignSpecialCharsToASCII(csr.Content),csrIdx));
+                                    psrSummaryList['PSR_' + idx].push(textToPSRSummary(indesignSpecialCharsToASCII(csr.Content),csrIdx,0));
                                 }
                             }
                         }
@@ -269,7 +272,7 @@ export function getICMLFilePathForName(inputFolder: string, icmlName: string): s
 }
 
 export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string): object => {
-    let sourceTranslation: {[key: string]: { [key: string]: { [key: string]: string | PSRSummary[]} } } = {};
+    let sourceTranslation: {[key: string]: { [key: string]: { [key: string]: { [key: string]: string | PSRSummary[]} } } } = {};
     let currentStoryId: string;
     icmlFiles.forEach( (icmlFile) => {
         const icmlIdSeparator           = icmlFile.lastIndexOf('-');
@@ -285,14 +288,18 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
             }
             sourceTranslation['Story_' + icmlId][key] = {};
             csrList.forEach((csr) => {
+                let csrKey = 'CSR_' + csr.csrIdx;
+                let finalContent = csr.content;
                 if(csr.type === 'hyperlink') {
-                    let html: string = hyperlinkToHTML(csr);
-                    sourceTranslation['Story_' + currentStoryId][key]['CSR_html_0']  = html;
-                } else {
-                    sourceTranslation['Story_' + currentStoryId][key]['CSR_' + csr.idx] = csr.content;
+                    csrKey = 'CSR_html_' + csr.csrIdx;
+                    finalContent = hyperlinkToHTML(csr);
                 }
+                if(csr.contentIdx === 0) {
+                    sourceTranslation['Story_' + currentStoryId][key][csrKey] = {};
+                }
+                sourceTranslation['Story_' + currentStoryId][key][csrKey]['Content_' + csr.contentIdx] = finalContent;
             });
-            sourceTranslation['Story_' + icmlId][key]['src'] = csrList;
+            sourceTranslation['Story_' + icmlId][key]['src']['src'] = csrList;
         }
     });
     return sourceTranslation;
