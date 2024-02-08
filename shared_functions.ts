@@ -295,7 +295,7 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                         csrKey = 'CSR_html_' + csr.csrIdx;
                         finalContent = hyperlinkToHTML(csr);
                     }
-                    if(Object.keys(sourceTranslation['Story_' + currentStoryId][key]).length === 0) {
+                    if(sourceTranslation['Story_' + currentStoryId][key].hasOwnProperty(csrKey) === false) {
                         sourceTranslation['Story_' + currentStoryId][key][csrKey] = {};
                     }
                     sourceTranslation['Story_' + currentStoryId][key][csrKey]['Content_' + csr.contentIdx] = finalContent;
