@@ -299,6 +299,7 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                 }
                 sourceTranslation['Story_' + currentStoryId][key][csrKey]['Content_' + csr.contentIdx] = finalContent;
             });
+            sourceTranslation['Story_' + icmlId][key]['src'] = {};
             sourceTranslation['Story_' + icmlId][key]['src']['src'] = csrList;
         }
     });
