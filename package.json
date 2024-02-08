@@ -12,6 +12,7 @@
     "@types/dom-parser": "^0.1.1",
     "@types/node": "^17.0.17",
     "@types/string-similarity": "^4.0.0",
+    "@xmldom/xmldom": "^0.8.10",
     "dom-parser": "^0.1.6",
     "fast-xml-parser": "4.1.2",
     "html-entities": "^2.3.2",
@@ -19,7 +20,8 @@
     "pdf-lib": "^1.17.1",
     "string-similarity": "^4.0.4",
     "typescript": "^5.3.3",
-    "xlsx": "^0.18.0"
+    "xlsx": "^0.18.0",
+    "xpath": "^0.0.34"
   },
   "author": "John D'Orazio",
   "contributors": [

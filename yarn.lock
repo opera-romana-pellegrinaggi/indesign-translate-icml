@@ -248,6 +248,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@xmldom/xmldom@npm:^0.8.10":
+  version: 0.8.10
+  resolution: "@xmldom/xmldom@npm:0.8.10"
+  checksum: 10c0/c7647c442502720182b0d65b17d45d2d95317c1c8c497626fe524bda79b4fb768a9aa4fae2da919f308e7abcff7d67c058b102a9d641097e9a57f0b80187851f
+  languageName: node
+  linkType: hard
+
 "abbrev@npm:^2.0.0":
   version: 2.0.0
   resolution: "abbrev@npm:2.0.0"
@@ -724,6 +731,7 @@ __metadata:
     "@types/dom-parser": "npm:^0.1.1"
     "@types/node": "npm:^17.0.17"
     "@types/string-similarity": "npm:^4.0.0"
+    "@xmldom/xmldom": "npm:^0.8.10"
     dom-parser: "npm:^0.1.6"
     fast-xml-parser: "npm:4.1.2"
     html-entities: "npm:^2.3.2"
@@ -733,6 +741,7 @@ __metadata:
     tsx: "npm:^4.7.0"
     typescript: "npm:^5.3.3"
     xlsx: "npm:^0.18.0"
+    xpath: "npm:^0.0.34"
   languageName: unknown
   linkType: soft
 
@@ -1337,6 +1346,13 @@ __metadata:
   bin:
     xlsx: bin/xlsx.njs
   checksum: 10c0/787cfa77034a3e86fdcde21572f1011c8976f87823a5e0ee5057f13b2f6e48f17a1710732a91b8ae15d7794945c7cba8a3ca904ea7150e028260b0ab8e1158c8
+  languageName: node
+  linkType: hard
+
+"xpath@npm:^0.0.34":
+  version: 0.0.34
+  resolution: "xpath@npm:0.0.34"
+  checksum: 10c0/88335108884ca164421f7fed048ef1a18ab3f7b1ae446b627fd3f51fc2396dcce798601c5e426de3bbd55d5940b84cf2326c75cd76620c1b49491283b85de17a
   languageName: node
   linkType: hard
 

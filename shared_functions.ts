@@ -3,6 +3,8 @@ import DomParser from "dom-parser"
 import { encode, decode } from "html-entities"
 import fs from "fs"
 import path from "path"
+import xpath from "xpath"
+import { DOMParser } from "@xmldom/xmldom"
 
 export type PSRType = "text" | "hyperlink"
 
@@ -115,6 +117,7 @@ export function extractStoryPSRList(storyFileContents: string): {[key: string]: 
         isArray: (name, jpath, isLeafNode, isAttribute) => arrayElements.includes(jpath)
     });
     const storyXmlParsed = parser.parse(storyFileContents);
+    const xmlDoc = new DOMParser().parseFromString(storyFileContents, 'text/xml');
     //console.log(storyXmlParsed);
     //console.log(`Document.length=${storyXmlParsed.Document.length}, Document[0].Story.length=${storyXmlParsed.Document[0].Story.length}, Document[0].Story[0].ParagraphStyleRange.length=${storyXmlParsed.Document[0].Story[0].ParagraphStyleRange.length}`);
     let psrSummaryList: {[key: string]: PSRSummary[] }  = {};
@@ -129,6 +132,7 @@ export function extractStoryPSRList(storyFileContents: string): {[key: string]: 
                 lastPsr = psr;
                 if (psr.CharacterStyleRange && psr.CharacterStyleRange.length > 0) {
                     psr.CharacterStyleRange.forEach((csr: any,csrIdx: number) => {
+                        //let nodes = xpath.select("//CharacterStyleRange", xmlDoc);
                         //console.log(csr);
                         if (csr.HyperlinkTextDestination
                             && csr.Content
@@ -283,10 +287,8 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
         const icmlIdSeparator           = icmlFile.lastIndexOf('-');
         const icmlId                    = icmlFile.slice(icmlIdSeparator + 1).split('.')[0];
         const icmlFilePath: string      = path.join(sourceFolder, icmlFile);
-        let icmlFileContents: string  = fs.readFileSync(icmlFilePath).toString();
+        const icmlFileContents: string  = preserveXMLWhitespace(fs.readFileSync(icmlFilePath).toString());
         //the XMLParser trims whitespace from leaf nodes. Only way to preserve is wrap in CDATA tags...
-        icmlFileContents = icmlFileContents.replace(/\<Content\>(\s+?.*?)\<\/Content\>/g, "<Content><![CDATA[$1]]></Content>");
-        icmlFileContents = icmlFileContents.replace(/\<Content\>(.*?\s+?)\<\/Content\>/g, "<Content><![CDATA[$1]]></Content>");
         const psrList: {[key: string]: PSRSummary[]}     = extractStoryPSRList(icmlFileContents);
 
         for(const [key,csrList] of Object.entries(psrList) ) {
@@ -294,27 +296,34 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                 currentStoryId = icmlId;
                 sourceTranslation['Story_' + icmlId] = {};
             }
-            sourceTranslation['Story_' + icmlId][key] = {};
-            csrList.forEach((csr) => {
-                if(/[a-zA-Z]/.test(csr.content)) {
-                    let csrKey = 'CSR_' + csr.csrIdx;
-                    let finalContent = csr.content;
-                    if(csr.type === 'hyperlink') {
-                        csrKey = 'CSR_html_' + csr.csrIdx;
-                        finalContent = hyperlinkToHTML(csr);
+            if(csrList.length) {
+                sourceTranslation['Story_' + icmlId][key] = {};
+                csrList.forEach((csr) => {
+                    if(/[a-zA-Z]/.test(csr.content)) {
+                        let csrKey = 'CSR_' + csr.csrIdx;
+                        let finalContent = csr.content;
+                        if(csr.type === 'hyperlink') {
+                            csrKey = 'CSR_html_' + csr.csrIdx;
+                            finalContent = hyperlinkToHTML(csr);
+                        }
+                        if(sourceTranslation['Story_' + currentStoryId][key].hasOwnProperty(csrKey) === false) {
+                            sourceTranslation['Story_' + currentStoryId][key][csrKey] = {};
+                        }
+                        sourceTranslation['Story_' + currentStoryId][key][csrKey]['Content_' + csr.contentIdx] = finalContent;
                     }
-                    if(sourceTranslation['Story_' + currentStoryId][key].hasOwnProperty(csrKey) === false) {
-                        sourceTranslation['Story_' + currentStoryId][key][csrKey] = {};
-                    }
-                    sourceTranslation['Story_' + currentStoryId][key][csrKey]['Content_' + csr.contentIdx] = finalContent;
-                }
-            });
-            sourceTranslation['Story_' + icmlId][key]['src'] = csrList;
+                });
+                sourceTranslation['Story_' + icmlId][key]['src'] = csrList;
+            }
         }
     });
     return sourceTranslation;
 }
 
+export const preserveXMLWhitespace = (fileContents: string): string => {
+    fileContents = fileContents.replace(/\<Content\>(\s+?.*?)\<\/Content\>/g, "<Content><![CDATA[$1]]></Content>");
+    fileContents = fileContents.replace(/\<Content\>(.*?\s+?)\<\/Content\>/g, "<Content><![CDATA[$1]]></Content>");
+    return fileContents;
+}
 
 export const validIsoCodes = [ "aa", "ab", "af", "am", "ar", "as", "ay", "az", "ba", "be", "bg", "bh", "bi", "bn",
  "bo", "ca", "co", "cs", "cy", "da", "de", "dz", "el", "en", "eo", "es", "et", "eu", "fa", "fi", "fj", "fo", "fr",
