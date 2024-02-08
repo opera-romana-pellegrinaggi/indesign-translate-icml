@@ -331,9 +331,9 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                         let csrKey = 'CSR_' + csr.csrIdx;
                         let finalContent = csr.content;
                         if(csr.csrIdx > 0){
-                            if(/^[^\p{L}]/.test(csr.content)){
+                            if(/^[^\p{L}]/u.test(csr.content)){
                             //if(/^[;\,\.\-]/.test(csr.content)){
-                                console.log(`I'm not the first of my class, and I start with punctuation: Story_${currentStoryId} ${key}, ${csrKey}, Content_${csr.contentIdx} `);
+                                console.log(`>>>>>>>>>> I'm not the first of my class, and I start with punctuation: Story_${currentStoryId} ${key}, ${csrKey}, Content_${csr.contentIdx} `);
                                 console.log(basket);
                                 console.log(csr.content);
                             }
