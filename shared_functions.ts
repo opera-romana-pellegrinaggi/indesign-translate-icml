@@ -119,7 +119,7 @@ export function extractStoryPSRList(storyFileContents: string): PSRSummary[] {
     if (storyXMLNullCheck(storyXmlParsed)) {
         try {
             storyXmlParsed.Document[0].Story[0].ParagraphStyleRange.forEach((psr: { CharacterStyleRange: any[]; }, idx: number) => {
-                console.log(`Document[0].Story[0].ParagraphStyleRange[${idx}]=`);
+                //console.log(`Document[0].Story[0].ParagraphStyleRange[${idx}]=`);
                 //console.log(psr);
                 lastPsr = psr;
                 if (psr.CharacterStyleRange && psr.CharacterStyleRange.length > 0) {
@@ -129,7 +129,7 @@ export function extractStoryPSRList(storyFileContents: string): PSRSummary[] {
                             && csr.Content
                             && typeof csr.Content === "string"
                         ) {
-                            let str = csr.Content;
+                            let str = indesignSpecialCharsToASCII(csr.Content);
                             let psrSummary: PSRSummary = {
                                 content: str,
                                 type: "hyperlink",
@@ -139,11 +139,11 @@ export function extractStoryPSRList(storyFileContents: string): PSRSummary[] {
                             psrSummaryList.push(psrSummary);
                         } else if (csr.Content) {
                             if (typeof csr.Content === "string" || typeof csr.Content === "number") {
-                                psrSummaryList.push(textToPSRSummary(csr.Content + ''));
+                                psrSummaryList.push(textToPSRSummary(indesignSpecialCharsToASCII(csr.Content)));
                             } else if (Array.isArray(csr.Content)) {
                                 console.log('we have a case in which csr.Content is an Array :O');
                                 for (let str of csr.Content) {
-                                    psrSummaryList.push(textToPSRSummary(str));
+                                    psrSummaryList.push(textToPSRSummary(indesignSpecialCharsToASCII(str)));
                                 }
                             }
                         }
@@ -158,6 +158,14 @@ export function extractStoryPSRList(storyFileContents: string): PSRSummary[] {
     }
 
     return psrSummaryList;
+}
+
+export function indesignSpecialCharsToASCII(str: string): string {
+    return str.replace(/\u2028/g, "\r").replace(/\u2029/g, "\n");
+}
+
+export function ASCIISpecialCharsToIndesign(str: string): string {
+    return str.replaceAll("\r", "\u2028" ).replaceAll("\n", "\u2029" );
 }
 
 export function psrListToHTML(psrList: PSRSummary[]): string {
