@@ -173,23 +173,14 @@ export function ASCIISpecialCharsToIndesign(str: string): string {
     return str.replaceAll("\r", "\u2028" ).replaceAll("\n", "\u2029" );
 }
 
-export function psrListToHTML(psrList: PSRSummary[]): string {
-    return psrList.map((psrSummary, index) => {
-        let id = psrSummary.self;
-        if (!id) {
-            id = "item-" + index;
-        }
-        let title = psrSummary.name;
-        if (!title) {
-            title = "";
-        }
-        let text = encode(psrSummary.content, { level: 'html5' });
-        if (psrSummary.type === "hyperlink") {
-            return `<a id="${id}" title="${title}">${text}</a>`;
-        } else {
-            return `<span id="${id}">${text}</span>`;
-        }
-    }).join("");
+export function psrListToHTML(psrSummary: PSRSummary): string {
+    let text = encode(psrSummary.content, { level: 'html5' });
+    let id = psrSummary.self;
+    if (!id) {
+        id = "item-0";
+    }
+    let title = psrSummary.name;
+    return `<a id="${id}" title="${title}">${text}</a>`;
 }
 
 export function htmlEntryToTextEntries(translateEntry: TranslationEntry): TranslationEntry[] {
@@ -291,15 +282,14 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                 sourceTranslation['Story_' + icmlId] = {};
             }
             sourceTranslation['Story_' + icmlId][key] = {};
-            const hasLinks: boolean     = csrList.filter((csr) => csr.type === "hyperlink").length > 0;
-            if (hasLinks) {
-                let html: string = psrListToHTML(csrList);
-                sourceTranslation['Story_' + currentStoryId][key]['CSR_html_0']  = html;
-            } else {
-                csrList.forEach((csr,csrIdx) => {
+            csrList.forEach((csr,csrIdx) => {
+                if(csr.type === 'hyperlink') {
+                    let html: string = psrListToHTML(csr);
+                    sourceTranslation['Story_' + currentStoryId][key]['CSR_html_0']  = html;
+                } else {
                     sourceTranslation['Story_' + currentStoryId][key]['CSR_' + csrIdx] = csr.content;
-                });
-            }
+                }
+            });
             sourceTranslation['Story_' + icmlId][key]['src'] = csrList;
         }
     });
