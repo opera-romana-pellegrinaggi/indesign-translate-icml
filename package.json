@@ -31,7 +31,6 @@
   ],
   "license": "MIT",
   "packageManager": "yarn@4.1.0",
-  "type": "module",
   "devDependencies": {
     "tsx": "^4.7.0"
   }

@@ -161,6 +161,10 @@ export function extractStoryPSRList(storyFileContents: string): PSRSummary[] {
 }
 
 export function indesignSpecialCharsToASCII(str: string): string {
+    if(typeof str !== 'string'){
+        console.error( str + ' is not of type string! detected type ' + typeof str );
+        return str;
+    }
     return str.replace(/\u2028/g, "\r").replace(/\u2029/g, "\n");
 }
 
