@@ -288,16 +288,18 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
             }
             sourceTranslation['Story_' + icmlId][key] = {};
             csrList.forEach((csr) => {
-                let csrKey = 'CSR_' + csr.csrIdx;
-                let finalContent = csr.content;
-                if(csr.type === 'hyperlink') {
-                    csrKey = 'CSR_html_' + csr.csrIdx;
-                    finalContent = hyperlinkToHTML(csr);
+                if(/[a-zA-Z]/.test(csr.content)) {
+                    let csrKey = 'CSR_' + csr.csrIdx;
+                    let finalContent = csr.content;
+                    if(csr.type === 'hyperlink') {
+                        csrKey = 'CSR_html_' + csr.csrIdx;
+                        finalContent = hyperlinkToHTML(csr);
+                    }
+                    if(csr.contentIdx === 0) {
+                        sourceTranslation['Story_' + currentStoryId][key][csrKey] = {};
+                    }
+                    sourceTranslation['Story_' + currentStoryId][key][csrKey]['Content_' + csr.contentIdx] = finalContent;
                 }
-                if(csr.contentIdx === 0) {
-                    sourceTranslation['Story_' + currentStoryId][key][csrKey] = {};
-                }
-                sourceTranslation['Story_' + currentStoryId][key][csrKey]['Content_' + csr.contentIdx] = finalContent;
             });
             sourceTranslation['Story_' + icmlId][key]['src'] = csrList;
         }
