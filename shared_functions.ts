@@ -286,7 +286,7 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
         const psrList: {[key: string]: PSRSummary[]}     = extractStoryPSRList(icmlFileContents);
 
         for(const [key,csrList] of Object.entries(psrList) ) {
-            //sourceTranslation['Story_' + icmlId][key] = {};
+            sourceTranslation['Story_' + icmlId] = {};
             const hasLinks: boolean     = csrList.filter((csr) => csr.type === "hyperlink").length > 0;
             if (hasLinks) {
                 let html: string = psrListToHTML(csrList);
