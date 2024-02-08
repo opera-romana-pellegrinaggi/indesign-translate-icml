@@ -263,49 +263,49 @@ export function getICMLFilePathForName(inputFolder: string, icmlName: string): s
 }
 
 export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string): object => {
-    let sourceTranslation: {[key: string]: { [key: string]: string } } = {};
+    let sourceTranslation: {[key: string]: { [key: string]: string | PSRSummary[] } } = {};
     let currentStoryId: string;
-    icmlFiles.forEach( (icmlFile) => {
-        const icmlIdSeparator = icmlFile.lastIndexOf('-');
-        const icmlId = icmlFile.slice(icmlIdSeparator + 1).split('.')[0];
-        const icmlFilePath: string = path.join(sourceFolder, icmlFile);
-        const icmlFileContents: string = fs.readFileSync(icmlFilePath).toString();
+    icmlFiles.forEach( (icmlFile, csrIdx) => {
+        const icmlIdSeparator           = icmlFile.lastIndexOf('-');
+        const icmlId                    = icmlFile.slice(icmlIdSeparator + 1).split('.')[0];
+        const icmlFilePath: string      = path.join(sourceFolder, icmlFile);
+        const icmlFileContents: string  = fs.readFileSync(icmlFilePath).toString();
         const psrList: PSRSummary[]     = extractStoryPSRList(icmlFileContents);
         const hasLinks: boolean         = psrList.filter((psr) => psr.type === "hyperlink").length > 0;
-        //sourceTranslation[icmlId]   = psrList;
 
         if (hasLinks) {
             let html: string = psrListToHTML(psrList);
             if( icmlId !== currentStoryId ) {
                 currentStoryId = icmlId;
-                sourceTranslation['Story_' + currentStoryId] = {};
-                sourceTranslation['Story_' + currentStoryId][html] = html;
+                sourceTranslation['Story_' + currentStoryId]        = {};
+                sourceTranslation['Story_' + currentStoryId]['CSR_html_' + csrIdx]  = html;
             } else {
-                sourceTranslation['Story_' + currentStoryId][html] = html;
+                sourceTranslation['Story_' + currentStoryId]['CSR_html_' + csrIdx]  = html;
             }
         } else {
             if( icmlId !== currentStoryId ) {
                 currentStoryId = icmlId;
-                sourceTranslation['Story_' + currentStoryId] = {};
+                sourceTranslation['Story_' + currentStoryId]        = {};
             }
             psrList.forEach((psr) => {
-                sourceTranslation['Story_' + currentStoryId][psr.content] = psr.content;
+                sourceTranslation['Story_' + currentStoryId]['CSR_' + csrIdx] = psr.content;
             });
         }
+        sourceTranslation['Story_' + icmlId]['src']     = psrList;
 
     });
     return sourceTranslation;
 }
 
 
-export const validIsoCodes = [ "aa", "ab", "af", "am", "ar", "as", "ay", "az", "ba", "be", "bg", "bh", "bi", "bn", "bo",
- "ca", "co", "cs", "cy", "da", "de", "dz", "el", "en", "eo", "es", "et", "eu", "fa", "fi", "fj", "fo", "fr", "fy",
- "ga", "gl", "gn", "gu", "ha", "he", "hi", "hr", "hu", "hy", "ia", "id", "ik", "is", "it", "iu", "ja", "jv", "ka",
- "kk", "kl", "km", "kn", "ko", "ks", "ku", "ky", "la", "ln", "lo", "lt", "lv", "mg", "mi", "mk", "ml", "mn", "mr",
- "ms", "mt", "my", "na", "ne", "nl", "no", "oc", "om", "or", "pa", "pl", "ps", "pt", "qu", "rm", "rn", "ro", "ru",
- "rw", "sa", "sd", "si", "sk", "sl", "sm", "sn", "so", "sq", "sr", "ss", "st", "su", "sv", "sw", "ta", "te", "tg",
- "th", "ti", "tk", "tl", "tn", "to", "tr", "ts", "tt", "tw", "ug", "uk", "ur", "uz", "vi", "vo", "wo", "xh", "yi",
- "yo", "za", "zh", "zu"
+export const validIsoCodes = [ "aa", "ab", "af", "am", "ar", "as", "ay", "az", "ba", "be", "bg", "bh", "bi", "bn",
+ "bo", "ca", "co", "cs", "cy", "da", "de", "dz", "el", "en", "eo", "es", "et", "eu", "fa", "fi", "fj", "fo", "fr",
+ "fy", "ga", "gl", "gn", "gu", "ha", "he", "hi", "hr", "hu", "hy", "ia", "id", "ik", "is", "it", "iu", "ja", "jv",
+ "ka", "kk", "kl", "km", "kn", "ko", "ks", "ku", "ky", "la", "ln", "lo", "lt", "lv", "mg", "mi", "mk", "ml", "mn",
+ "mr", "ms", "mt", "my", "na", "ne", "nl", "no", "oc", "om", "or", "pa", "pl", "ps", "pt", "qu", "rm", "rn", "ro",
+ "ru", "rw", "sa", "sd", "si", "sk", "sl", "sm", "sn", "so", "sq", "sr", "ss", "st", "su", "sv", "sw", "ta", "te",
+ "tg", "th", "ti", "tk", "tl", "tn", "to", "tr", "ts", "tt", "tw", "ug", "uk", "ur", "uz", "vi", "vo", "wo", "xh",
+ "yi", "yo", "za", "zh", "zu"
 ];
 
 export function isValidIso(isoCode: string): boolean {
