@@ -171,11 +171,15 @@ export function extractStoryPSRList(storyFileContents: string): {[key: string]: 
 }
 
 export function indesignSpecialCharsToASCII(str: string): string {
-    return str.replace(/\u2028/g, "\r").replace(/\u2029/g, "\n");
+    if(typeof str !== 'string') {
+        console.error('we have a case in which str §' + str + '§ is of type ' + typeof str);
+        return str;
+    }
+    return str.replace(/\u2028/g, "\r").replace(/\u2029/g, "\n").replace(/\u0009/g, "\t");
 }
 
 export function ASCIISpecialCharsToIndesign(str: string): string {
-    return str.replaceAll("\r", "\u2028" ).replaceAll("\n", "\u2029" );
+    return str.replaceAll("\r", "\u2028" ).replaceAll("\n", "\u2029" ).replaceAll("\t", "\u0009");
 }
 
 export function hyperlinkToHTML(psrSummary: PSRSummary): string {
