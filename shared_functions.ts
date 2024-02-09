@@ -356,6 +356,14 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                                 //if the previous content has already been wrapped in a content tag, then we don't need to wrap it again
                                 a = '<' + csrKey + ':Content_' + csr.contentIdx + '>' + finalContent + '</' + csrKey + ':Content_' + csr.contentIdx + '>';
                                 sourceTranslation[lastIdx[0]][lastIdx[1]][lastIdx[2]][lastIdx[3]] = prevContent + a;
+                            } else {
+                                sourceTranslation['Story_' + icmlId][key][csrKey]['Content_' + csr.contentIdx] = finalContent;
+                                lastIdx = [
+                                    'Story_' + icmlId,
+                                    key,
+                                    csrKey,
+                                    'Content_' + csr.contentIdx
+                                ];
                             }
                         } else {
                             if(sourceTranslation['Story_' + icmlId][key].hasOwnProperty(csrKey) === false) {
