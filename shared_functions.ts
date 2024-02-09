@@ -313,6 +313,7 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
     let sourceTranslation: {[key: string]: { [key: string]: { [key: string]: { [key: string]: string | PSRSummary[]} | PSRSummary[] | string } } } = {};
     let currentStoryId: string;
     icmlFiles.forEach( (icmlFile) => {
+        console.log(`\textracting strings from file ${icmlFile}...`);
         const icmlIdSeparator           = icmlFile.lastIndexOf('-');
         const icmlId                    = icmlFile.slice(icmlIdSeparator + 1).split('.')[0];
         const icmlFilePath: string      = path.join(sourceFolder, icmlFile);
@@ -328,6 +329,7 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                 sourceTranslation['Story_' + icmlId][key] = {};
                 let basket: string | null = null;
                 let lastIdx: string[] | null = null;
+                let lastCsr: PSRSummary | null = null;
                 csrList.forEach((csr) => {
                     if(/[a-zA-Z]/.test(csr.content)) {
                         //let's check if our string meets these conditions:
@@ -339,30 +341,35 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                             csrKey = 'CSR_html_' + csr.csrIdx;
                             finalContent = hyperlinkToHTML(csr);
                         }
-                        /*if(csr.csrIdx > 0 && lastIdx !== null ){
-                            if(/^[^\p{L}]/u.test(csr.content)){
-                            //if(/^[;\,\.\-]/.test(csr.content)){
-                                console.log(`>>>>>>>>>> I'm not the first of my class, and I start with punctuation: Story_${currentStoryId} ${key}, ${csrKey}, Content_${csr.contentIdx} `);
-                                console.log(basket);
-                                console.log(csr.content);
+                        if(csr.csrIdx > 0 && lastIdx !== null && lastCsr !== null ) {
+                            let firstCharNotALetterChar = /^[^\p{L}]/u.test(csr.content);
+                            if(firstCharNotALetterChar || (csr.hasPrevBr === false && lastCsr.hasNextBr === false ) ) {
+                                if( firstCharNotALetterChar ) {
+                                    console.log(`>>>>>>>>>> I'm not the first of my class, and I start with punctuation: Story_${icmlId} ${key}, ${csrKey}, Content_${csr.contentIdx} `);
+                                } else {
+                                    console.log(`>>>>>>>>>> There's no newline before me, or after my preceding sibling: Story_${icmlId} ${key}, ${csrKey}, Content_${csr.contentIdx} `);
+                                }
+                                console.log(`PRECEDING SIBLING: ${basket}`);
+                                console.log(`MYSELF:            ${csr.content}`);
                                 let prevContent = sourceTranslation[lastIdx[0]][lastIdx[1]][lastIdx[2]][lastIdx[3]];
                                 let a = '<' + lastIdx[3] + '>' + prevContent + '</' + lastIdx[3] + '>'
                                 let b = '<' + csrKey + ':Content_' + csr.contentIdx + '>' + finalContent + '</' + csrKey + ':Content_' + csr.contentIdx + '>';
                                 sourceTranslation[lastIdx[0]][lastIdx[1]][lastIdx[2]][lastIdx[3]] = a + b;
                             }
-                        } else {*/
-                            if(sourceTranslation['Story_' + currentStoryId][key].hasOwnProperty(csrKey) === false) {
-                                sourceTranslation['Story_' + currentStoryId][key][csrKey] = {};
+                        } else {
+                            if(sourceTranslation['Story_' + icmlId][key].hasOwnProperty(csrKey) === false) {
+                                sourceTranslation['Story_' + icmlId][key][csrKey] = {};
                             }
-                            sourceTranslation['Story_' + currentStoryId][key][csrKey]['Content_' + csr.contentIdx] = finalContent;
+                            sourceTranslation['Story_' + icmlId][key][csrKey]['Content_' + csr.contentIdx] = finalContent;
                             lastIdx = [
-                                'Story_' + currentStoryId,
+                                'Story_' + icmlId,
                                 key,
                                 csrKey,
                                 'Content_' + csr.contentIdx
                             ];
-                        //}
+                        }
                         basket = finalContent;
+                        lastCsr = csr;
                     }
                 });
                 sourceTranslation['Story_' + icmlId][key]['src'] = csrList;
