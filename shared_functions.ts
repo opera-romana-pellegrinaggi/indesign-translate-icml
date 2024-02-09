@@ -342,21 +342,43 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                             finalContent = hyperlinkToHTML(csr);
                         }
                         if(csr.csrIdx > 0 && lastIdx !== null && lastCsr !== null ) {
-                            let firstCharNotALetterChar = /^[^\p{L}\t]/u.test(csr.content); //or a tab character
+                            let firstCharNotALetterChar = /^[^\p{L}\t]/u.test(csr.content); //or a TAB character
+                            /**
+                             * IF:
+                             *  CONDITION A:
+                             *    1) the first character of the current content string is not a letter character
+                             *        (usually this would be punctuation or a space: a string starting with punctuation or a space probably belongs to the string before it)
+                             *    AND
+                             *    2) the first character of the current content string is not a TAB character
+                             *        (if it is a tab character, then it probably doesn't belong with the string before, but should be it's own string)
+                             *  OR
+                             *  CONDITION B:
+                             *    1) the current string is not preceded by a paragraph break
+                             *    AND
+                             *    2) the preceding string is not followed by a paragraph break
+                             *    AND
+                             *    3) the first character of che current string is not a TAB character
+                             * THEN ASSERT THAT:
+                             *   The current content string belongs with the preceding content string
+                             */
                             if(firstCharNotALetterChar || (csr.hasPrevBr === false && lastCsr.hasNextBr === false && /^\t/u.test(csr.content) === false ) ) {
                                 if( firstCharNotALetterChar ) {
                                     console.log(`>>>>>>>>>> I'm not the first of my class, and I start with punctuation: Story_${icmlId} ${key}, ${csrKey}, Content_${csr.contentIdx} `);
                                 } else {
-                                    console.log(`>>>>>>>>>> There's no newline before me, or after my preceding sibling: Story_${icmlId} ${key}, ${csrKey}, Content_${csr.contentIdx} `);
+                                    console.log(`>>>>>>>>>> There's no newline before me, or after my preceding sibling, and I do not start with a TAB: Story_${icmlId} ${key}, ${csrKey}, Content_${csr.contentIdx} `);
                                 }
                                 console.log(`  PRECEDING SIBLING: ${basket}`);
                                 console.log(`  MYSELF:            ${csr.content}`);
                                 let prevContent = sourceTranslation[lastIdx[0]][lastIdx[1]][lastIdx[2]][lastIdx[3]];
-                                let a: string;
-                                //if the previous content has already been wrapped in a content tag, then we don't need to wrap it again
-                                a = '<' + csrKey + ':Content_' + csr.contentIdx + '>' + finalContent + '</' + csrKey + ':Content_' + csr.contentIdx + '>';
-                                sourceTranslation[lastIdx[0]][lastIdx[1]][lastIdx[2]][lastIdx[3]] = prevContent + a;
-                            } else {
+                                let b: string = '<' + csrKey + ':Content_' + csr.contentIdx + '>' + finalContent + '</' + csrKey + ':Content_' + csr.contentIdx + '>';
+                                sourceTranslation[lastIdx[0]][lastIdx[1]][lastIdx[2]][lastIdx[3]] = prevContent + b;
+                            }
+                            /**
+                             * ELSE (if the above conditions are not met) ASSERT THAT:
+                             *   The current content string does not belong with the preceding content string,
+                             *   but should instead stay as a string of it's own
+                             */
+                            else {
                                 if(sourceTranslation['Story_' + icmlId][key].hasOwnProperty(csrKey) === false) {
                                     sourceTranslation['Story_' + icmlId][key][csrKey] = {};
                                 }
