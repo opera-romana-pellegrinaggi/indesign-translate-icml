@@ -346,11 +346,12 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                                 let b = '<' + csrKey + ':Content_' + csr.contentIdx + '>' + finalContent + '</' + csrKey + ':Content_' + csr.contentIdx + '>';
                                 sourceTranslation[lastIdx[0]][lastIdx[1]][lastIdx[2]][lastIdx[3]] = a + b;
                             }
+                        } else {
+                            if(sourceTranslation['Story_' + currentStoryId][key].hasOwnProperty(csrKey) === false) {
+                                sourceTranslation['Story_' + currentStoryId][key][csrKey] = {};
+                            }
+                            sourceTranslation['Story_' + currentStoryId][key][csrKey]['Content_' + csr.contentIdx] = finalContent;
                         }
-                        if(sourceTranslation['Story_' + currentStoryId][key].hasOwnProperty(csrKey) === false) {
-                            sourceTranslation['Story_' + currentStoryId][key][csrKey] = {};
-                        }
-                        sourceTranslation['Story_' + currentStoryId][key][csrKey]['Content_' + csr.contentIdx] = finalContent;
                         basket = finalContent;
                         lastIdx = ['Story_' + currentStoryId, key, csrKey, 'Content_' + csr.contentIdx];
                     }
