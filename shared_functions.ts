@@ -349,11 +349,16 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                                 } else {
                                     console.log(`>>>>>>>>>> There's no newline before me, or after my preceding sibling: Story_${icmlId} ${key}, ${csrKey}, Content_${csr.contentIdx} `);
                                 }
-                                console.log(`PRECEDING SIBLING: ${basket}`);
-                                console.log(`MYSELF:            ${csr.content}`);
+                                console.log(`  PRECEDING SIBLING: ${basket}`);
+                                console.log(`  MYSELF:            ${csr.content}`);
                                 let prevContent = sourceTranslation[lastIdx[0]][lastIdx[1]][lastIdx[2]][lastIdx[3]];
-                                let a = '<' + lastIdx[3] + '>' + prevContent + '</' + lastIdx[3] + '>'
-                                let b = '<' + csrKey + ':Content_' + csr.contentIdx + '>' + finalContent + '</' + csrKey + ':Content_' + csr.contentIdx + '>';
+                                let a: string, b: string;
+                                //if the previous content has already been wrapped in a content tag, then we don't need to wrap it again
+                                if( /:Content_/.test(prevContent) ) {
+                                    a = prevContent;
+                                }
+                                a = '<' + lastIdx[3] + '>' + prevContent + '</' + lastIdx[3] + '>'
+                                b = '<' + csrKey + ':Content_' + csr.contentIdx + '>' + finalContent + '</' + csrKey + ':Content_' + csr.contentIdx + '>';
                                 sourceTranslation[lastIdx[0]][lastIdx[1]][lastIdx[2]][lastIdx[3]] = a + b;
                             }
                         } else {
