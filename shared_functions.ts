@@ -306,7 +306,7 @@ export function getICMLFilePathForName(inputFolder: string, icmlName: string): s
 }
 
 export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string): object => {
-    let sourceTranslation: {[key: string]: { [key: string]: { [key: string]: { [key: string]: string | PSRSummary[]} | PSRSummary[] } } } = {};
+    let sourceTranslation: {[key: string]: { [key: string]: { [key: string]: { [key: string]: string | PSRSummary[]} | PSRSummary[] | string } } } = {};
     let currentStoryId: string;
     icmlFiles.forEach( (icmlFile) => {
         const icmlIdSeparator           = icmlFile.lastIndexOf('-');
@@ -323,6 +323,7 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
             if(csrList.length) {
                 sourceTranslation['Story_' + icmlId][key] = {};
                 let basket: string | null = null;
+                let lastIdx: string[] | null = null;
                 csrList.forEach((csr) => {
                     if(/[a-zA-Z]/.test(csr.content)) {
                         //let's check if our string meets these conditions:
@@ -330,23 +331,28 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                         //  2) starts with a punctuation character indicating it might belong with the preceding CSR
                         let csrKey = 'CSR_' + csr.csrIdx;
                         let finalContent = csr.content;
-                        if(csr.csrIdx > 0){
+                        if(csr.type === 'hyperlink') {
+                            csrKey = 'CSR_html_' + csr.csrIdx;
+                            finalContent = hyperlinkToHTML(csr);
+                        }
+                        if(csr.csrIdx > 0 && lastIdx !== null ){
                             if(/^[^\p{L}]/u.test(csr.content)){
                             //if(/^[;\,\.\-]/.test(csr.content)){
                                 console.log(`>>>>>>>>>> I'm not the first of my class, and I start with punctuation: Story_${currentStoryId} ${key}, ${csrKey}, Content_${csr.contentIdx} `);
                                 console.log(basket);
                                 console.log(csr.content);
+                                let prevContent = sourceTranslation[lastIdx[0]][lastIdx[1]][lastIdx[2]][lastIdx[3]];
+                                let a = '<' + lastIdx[3] + '>' + prevContent + '</' + lastIdx[3] + '>'
+                                let b = '<' + 'Content_' + csr.contentIdx + '>' + finalContent + '</Content_' + csr.contentIdx + '>';
+                                sourceTranslation[lastIdx[0]][lastIdx[1]][lastIdx[2]][lastIdx[3]] = a + b;
                             }
-                        }
-                        if(csr.type === 'hyperlink') {
-                            csrKey = 'CSR_html_' + csr.csrIdx;
-                            finalContent = hyperlinkToHTML(csr);
                         }
                         if(sourceTranslation['Story_' + currentStoryId][key].hasOwnProperty(csrKey) === false) {
                             sourceTranslation['Story_' + currentStoryId][key][csrKey] = {};
                         }
                         sourceTranslation['Story_' + currentStoryId][key][csrKey]['Content_' + csr.contentIdx] = finalContent;
                         basket = finalContent;
+                        lastIdx = ['Story_' + currentStoryId, key, csrKey, 'Content_' + csr.contentIdx];
                     }
                 });
                 //sourceTranslation['Story_' + icmlId][key]['src'] = csrList;
