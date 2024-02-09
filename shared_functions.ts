@@ -342,7 +342,7 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                             finalContent = hyperlinkToHTML(csr);
                         }
                         if(csr.csrIdx > 0 && lastIdx !== null && lastCsr !== null ) {
-                            let firstCharNotALetterChar = /^[^\p{L}]/u.test(csr.content);
+                            let firstCharNotALetterChar = /^[^\p{L}\t]/u.test(csr.content); //or a tab character
                             if(firstCharNotALetterChar || (csr.hasPrevBr === false && lastCsr.hasNextBr === false ) ) {
                                 if( firstCharNotALetterChar ) {
                                     console.log(`>>>>>>>>>> I'm not the first of my class, and I start with punctuation: Story_${icmlId} ${key}, ${csrKey}, Content_${csr.contentIdx} `);
