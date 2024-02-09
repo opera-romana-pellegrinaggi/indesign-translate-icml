@@ -357,6 +357,9 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                                 a = '<' + csrKey + ':Content_' + csr.contentIdx + '>' + finalContent + '</' + csrKey + ':Content_' + csr.contentIdx + '>';
                                 sourceTranslation[lastIdx[0]][lastIdx[1]][lastIdx[2]][lastIdx[3]] = prevContent + a;
                             } else {
+                                if(sourceTranslation['Story_' + icmlId][key].hasOwnProperty(csrKey) === false) {
+                                    sourceTranslation['Story_' + icmlId][key][csrKey] = {};
+                                }
                                 sourceTranslation['Story_' + icmlId][key][csrKey]['Content_' + csr.contentIdx] = finalContent;
                                 lastIdx = [
                                     'Story_' + icmlId,
