@@ -158,16 +158,11 @@ export function extractStoryPSRList(storyFileContents: string): {[key: string]: 
                                 //console.log(csr.Content);
                                 csr.Content.forEach( (value: string,contentIdx: number) => {
                                     let psrSum = textToPSRSummary(indesignSpecialCharsToASCII(value),csrIdx,contentIdx);
-                                    //console.log(`current indices are: PSR_${idx}, CSR_${csrIdx}, Content_${contentIdx}`);
                                     let precedingSibling: SelectReturnType = xpath.select(`//ParagraphStyleRange[${idx+1}]/CharacterStyleRange[${csrIdx+1}]/Content[${contentIdx+1}]/preceding-sibling::*[1][self::Br]`, xmlDoc);
-                                    //console.log('preceding sibling:');
-                                    //console.log(precedingSibling.length);
                                     if(precedingSibling && precedingSibling.length) {
                                         psrSum.hasPrevBr = true;
                                     }
                                     let followingSibling: SelectReturnType = xpath.select(`//ParagraphStyleRange[${idx+1}]/CharacterStyleRange[${csrIdx+1}]/Content[${contentIdx+1}]/following-sibling::*[1][self::Br]`, xmlDoc);
-                                    //console.log('following sibling:');
-                                    //console.log(followingSibling.length);
                                     if(followingSibling && followingSibling.length) {
                                         psrSum.hasNextBr = true;
                                     }
@@ -175,7 +170,16 @@ export function extractStoryPSRList(storyFileContents: string): {[key: string]: 
                                 });
                             } else {
                                 if (typeof csr.Content === "string") {
-                                    psrSummaryList['PSR_' + idx].push(textToPSRSummary(indesignSpecialCharsToASCII(csr.Content),csrIdx,0));
+                                    let psrSum = textToPSRSummary(indesignSpecialCharsToASCII(csr.Content),csrIdx,0);
+                                    let precedingSibling: SelectReturnType = xpath.select(`//ParagraphStyleRange[${idx+1}]/CharacterStyleRange[${csrIdx+1}]/Content[1]/preceding-sibling::*[1][self::Br]`, xmlDoc);
+                                    if(precedingSibling && precedingSibling.length) {
+                                        psrSum.hasPrevBr = true;
+                                    }
+                                    let followingSibling: SelectReturnType = xpath.select(`//ParagraphStyleRange[${idx+1}]/CharacterStyleRange[${csrIdx+1}]/Content[1]/following-sibling::*[1][self::Br]`, xmlDoc);
+                                    if(followingSibling && followingSibling.length) {
+                                        psrSum.hasNextBr = true;
+                                    }
+                                    psrSummaryList['PSR_' + idx].push(psrSum);
                                 }
                             }
                         }
@@ -335,7 +339,7 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                             csrKey = 'CSR_html_' + csr.csrIdx;
                             finalContent = hyperlinkToHTML(csr);
                         }
-                        if(csr.csrIdx > 0 && lastIdx !== null ){
+                        /*if(csr.csrIdx > 0 && lastIdx !== null ){
                             if(/^[^\p{L}]/u.test(csr.content)){
                             //if(/^[;\,\.\-]/.test(csr.content)){
                                 console.log(`>>>>>>>>>> I'm not the first of my class, and I start with punctuation: Story_${currentStoryId} ${key}, ${csrKey}, Content_${csr.contentIdx} `);
@@ -346,7 +350,7 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                                 let b = '<' + csrKey + ':Content_' + csr.contentIdx + '>' + finalContent + '</' + csrKey + ':Content_' + csr.contentIdx + '>';
                                 sourceTranslation[lastIdx[0]][lastIdx[1]][lastIdx[2]][lastIdx[3]] = a + b;
                             }
-                        } else {
+                        } else {*/
                             if(sourceTranslation['Story_' + currentStoryId][key].hasOwnProperty(csrKey) === false) {
                                 sourceTranslation['Story_' + currentStoryId][key][csrKey] = {};
                             }
@@ -357,11 +361,11 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                                 csrKey,
                                 'Content_' + csr.contentIdx
                             ];
-                        }
+                        //}
                         basket = finalContent;
                     }
                 });
-                //sourceTranslation['Story_' + icmlId][key]['src'] = csrList;
+                sourceTranslation['Story_' + icmlId][key]['src'] = csrList;
             }
         }
     });
