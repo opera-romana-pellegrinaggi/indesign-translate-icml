@@ -407,7 +407,7 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                         lastCsr = csr;
                     }
                 });
-                sourceTranslation['Story_' + icmlId][key]['src'] = csrList;
+                //sourceTranslation['Story_' + icmlId][key]['src'] = csrList;
             }
         }
     });
