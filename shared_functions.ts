@@ -343,7 +343,7 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                                 console.log(csr.content);
                                 let prevContent = sourceTranslation[lastIdx[0]][lastIdx[1]][lastIdx[2]][lastIdx[3]];
                                 let a = '<' + lastIdx[3] + '>' + prevContent + '</' + lastIdx[3] + '>'
-                                let b = '<' + 'Content_' + csr.contentIdx + '>' + finalContent + '</Content_' + csr.contentIdx + '>';
+                                let b = '<' + csrKey + ':Content_' + csr.contentIdx + '>' + finalContent + '</' + csrKey + ':Content_' + csr.contentIdx + '>';
                                 sourceTranslation[lastIdx[0]][lastIdx[1]][lastIdx[2]][lastIdx[3]] = a + b;
                             }
                         }
