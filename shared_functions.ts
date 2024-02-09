@@ -330,6 +330,7 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                 let basket: string | null = null;
                 let lastIdx: string[] | null = null;
                 let lastCsr: PSRSummary | null = null;
+                let contentCnt: number = csrList.length;
                 csrList.forEach((csr) => {
                     if(/[a-zA-Z]/.test(csr.content)) {
                         //let's check if our string meets these conditions:
@@ -341,7 +342,7 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                             csrKey = 'CSR_html_' + csr.csrIdx;
                             finalContent = hyperlinkToHTML(csr);
                         }
-                        if(csr.csrIdx > 0 && lastIdx !== null && lastCsr !== null ) {
+                        if((contentCnt > 1 || csr.csrIdx > 0) && lastIdx !== null && lastCsr !== null ) {
                             let firstCharNotALetterChar = /^[^\p{L}\t]/u.test(csr.content); //or a TAB character
                             /**
                              * IF:
@@ -363,9 +364,9 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                              */
                             if(firstCharNotALetterChar || (csr.hasPrevBr === false && lastCsr.hasNextBr === false && /^\t/u.test(csr.content) === false ) ) {
                                 if( firstCharNotALetterChar ) {
-                                    console.log(`>>>>>>>>>> I'm not the first of my class, and I start with punctuation: Story_${icmlId} ${key}, ${csrKey}, Content_${csr.contentIdx} `);
+                                    console.log(`>>>>>>>>>> I'm not the first of my class, and I start with punctuation: Story_${icmlId}, ${key}, ${csrKey}, Content_${csr.contentIdx} `);
                                 } else {
-                                    console.log(`>>>>>>>>>> There's no newline before me, or after my preceding sibling, and I do not start with a TAB: Story_${icmlId} ${key}, ${csrKey}, Content_${csr.contentIdx} `);
+                                    console.log(`>>>>>>>>>> There's no newline before me, or after my preceding sibling, and I do not start with a TAB: Story_${icmlId}, ${key}, ${csrKey}, Content_${csr.contentIdx} `);
                                 }
                                 console.log(`  PRECEDING SIBLING: ${basket}`);
                                 console.log(`  MYSELF:            ${csr.content}`);
