@@ -352,15 +352,10 @@ export const extractStringsFromICML = (icmlFiles: string[], sourceFolder: string
                                 console.log(`  PRECEDING SIBLING: ${basket}`);
                                 console.log(`  MYSELF:            ${csr.content}`);
                                 let prevContent = sourceTranslation[lastIdx[0]][lastIdx[1]][lastIdx[2]][lastIdx[3]];
-                                let a: string, b: string;
+                                let a: string;
                                 //if the previous content has already been wrapped in a content tag, then we don't need to wrap it again
-                                if( /:Content_/.test(prevContent) ) {
-                                    a = prevContent;
-                                } else {
-                                    a = '<' + lastIdx[3] + '>' + prevContent + '</' + lastIdx[3] + '>';
-                                }
-                                b = '<' + csrKey + ':Content_' + csr.contentIdx + '>' + finalContent + '</' + csrKey + ':Content_' + csr.contentIdx + '>';
-                                sourceTranslation[lastIdx[0]][lastIdx[1]][lastIdx[2]][lastIdx[3]] = a + b;
+                                a = '<' + csrKey + ':Content_' + csr.contentIdx + '>' + finalContent + '</' + csrKey + ':Content_' + csr.contentIdx + '>';
+                                sourceTranslation[lastIdx[0]][lastIdx[1]][lastIdx[2]][lastIdx[3]] = prevContent + a;
                             }
                         } else {
                             if(sourceTranslation['Story_' + icmlId][key].hasOwnProperty(csrKey) === false) {
